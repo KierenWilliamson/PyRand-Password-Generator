@@ -1,6 +1,4 @@
 import random
-import pyrand_exceptions as passExcept
-
 
 class Password:
     # list that will contain the randomized characters pulled from the HashTable
@@ -18,62 +16,59 @@ class Password:
         self.minSyms = min_syms
         self.capitalBool = capital_bool
         self.lowerBool = lower_bool
-        self.pointer = word_length - 1
+        self.numLetters = self.wordLength - self.minNums - self.minSyms
         self.numCapitals = 0
-        self.numLowers = 0
+        self.numLowercase = 0
         self.pass_phrase = ""
-
         self.load_password()
 
-    def get_capitals(self):
+    def set_num_capitals(self):
+        if self.capitalBool and self.lowerBool:
+            self.numCapitals = random.randint(0, self.numLetters)
+        elif self.capitalBool:
+            self.numCapitals = self.numLetters
+
+    def get_num_capitals(self):
+        return self.numCapitals
+
+    def set_num_lowercase(self):
+        if self.capitalBool and self.lowerBool:
+            self.numLowercase = self.wordLength - self.get_num_capitals()
+        elif self.lowerBool:
+            self.numLowercase = self.numLetters
+
+    def get_num_lowercase(self):
+        return self.numLowercase
+
+    def set_capitals(self):
         for i in range(0, self.numCapitals):
             self._charList.append(self._CHAR_HASH[random.randint(10, 35)].upper())
 
-    def get_lowers(self):
-        for i in range(0, self.numLowers):
+    def set_lowercase(self):
+        for i in range(0, self.numLowercase):
             self._charList.append(self._CHAR_HASH[random.randint(10, 35)])
+
+    def set_min_syms(self):
+        for i in range(0, self.minSyms):
+            self._charList.append(self._CHAR_HASH[random.randint(36, 43)])
+
+    def set_min_nums(self):
+        for i in range(0, self.minNums):
+            self._charList.append(self._CHAR_HASH[random.randint(0, 9)])
 
 # loads the character list with characters based on the given boolean values and number of symbols and numbers
     def load_password(self):
         self._charList.clear()
-        rand_num = random.randint(0, (self.wordLength - self.minNums - self.minSyms))
-
-        if self.capitalBool and self.lowerBool:
-            self.numCapitals = rand_num
-            self.numLowers = self.wordLength - self.numCapitals
-            self.get_capitals()
-            self.get_lowers()
-        elif self.capitalBool:
-            self.numCapitals = self.wordLength - self.minNums - self.minSyms
-            self.get_capitals()
-        elif self.lowerBool:
-            self.numLowers = self.wordLength - self.minNums - self.minSyms
-            self.get_lowers()
-
-        for i in range(0, self.minNums):
-            self._charList.append(self._CHAR_HASH[random.randint(0, 9)])
-
-        for i in range(0, self.minSyms):
-            self._charList.append(self._CHAR_HASH[random.randint(36, 43)])
-
-# randomizes the character list using a Fisher-Yates shuffle algorithm
-    def randomize(self):
-        # if the requested length is longer then the available characters, the custom exception is raised
-        try:
-            if (self.pointer == 0) or (len(self._charList) == 0):
-                return
-            else:
-                rand_swap = random.randint(0, self.pointer)
-                tmp_elem = self._charList[rand_swap]
-                self._charList[rand_swap] = self._charList[self.pointer]
-                self._charList[self.pointer] = tmp_elem
-                self.pointer -= 1
-                return self.randomize()
-        except IndexError:
-            raise passExcept.LengthError
+        self.set_num_capitals()
+        self.set_num_lowercase()        
+        self.set_capitals()
+        self.set_lowercase()
+        self.set_min_nums()
+        self.set_min_syms()
 
 # converts and returns the contents of the character list into a string
     def parse_password(self):
+        random.shuffle(self._charList)
         for i in self._charList:
             self.pass_phrase += i
 

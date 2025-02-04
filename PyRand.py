@@ -44,11 +44,11 @@ def generate_password():
     password_obj = PyClient.Password(globalPassLength, globalTtlNums, globalTtlSyms, globalCapBool, globalLowerBool)
 
 # handles the event that the length of the password is set to be longer than the available number of characters
-    try:
-        password_obj.randomize()
-    except passExcept.LengthError:
-        showinfo(title="Notice", message="Since there will be no letter characters, the total password length cannot "
-                                         "exceed the sum of the symbols and numbers")
+    # try:
+    #     password_obj.randomize()
+    # except passExcept.LengthError:
+    #     showinfo(title="Notice", message="Since there will be no letter characters, the total password length cannot "
+    #                                      "exceed the sum of the symbols and numbers")
 
     # unlock the text field, clears the text field of previous input then inputs the randomly generated password
     # afterward, the text field is made un-editable again
