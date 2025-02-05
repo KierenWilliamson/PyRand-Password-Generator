@@ -1,6 +1,9 @@
+'''Main program for the tkinter PyRand application.'''
+
 import tkinter as tk
 from tkinter import ttk
 from tkinter.messagebox import showinfo
+from ast import literal_eval
 import pyrand_client as PyClient
 import pyrand_exceptions as passExcept
 
@@ -17,8 +20,7 @@ PASSWORD_LENGTH = 0
 TOTAL_NUMS = 0
 TOTAL_SYMBS = 0
 
-
-# Center the GUI window on the screen
+# CENTER THE GUI WINDOW
 screen_width = root.winfo_screenwidth()
 screen_height = root.winfo_screenheight()
 WINDOW_WIDTH = 592
@@ -28,49 +30,73 @@ center_y = int((screen_height / 2) - (WINDOW_HEIGHT / 2))
 
 root.geometry(f'{WINDOW_WIDTH}x{WINDOW_HEIGHT}+{center_x}+{center_y}')
 
-
-# Set the size constraints and attributes of the window
-# root.resizable(False, False)
+# SET WINDOW SIZE AND ATTRIBUTE CONSTRAINTS
 root.attributes("-topmost", 1)
 root.columnconfigure(0, weight=3)
 root.columnconfigure(1, weight=1)
 
-
 # FUNCTIONS
-# gathers the data entered into the GUI window then inputs that data into the instantiated password object to create
-# the random password
 def generate_password():
-    gather_gui_data()
-    password_obj = PyClient.Password(PASSWORD_LENGTH, TOTAL_NUMS, TOTAL_SYMBS, CAPITAL_BOOL, LOWERCASE_BOOL)
+    '''
+    Gathers the data entered into the GUI window then instantiates
+    a password object. The text field where the password is displayed
+    is unlocked, cleared of previous input, then filled with the randomly 
+    generated password. The text field is made uneditable afterward.
+    
+    Args:
+        None
 
-# handles the event that the length of the password is set to be longer than the available number of characters
+    Returns:
+        None
+    '''
+    gather_gui_data()
+    # FIXME: make password obj generate only once upon launch of the app. The obj's functions are reusable. 
+    # Currently, a new obj is created everytime this function is called, which is a waste on memory.
+    password_obj = PyClient.Password(PASSWORD_LENGTH, TOTAL_NUMS,
+                                     TOTAL_SYMBS, CAPITAL_BOOL, LOWERCASE_BOOL)
+
+    # handles the event that the length of the password is set to be longer than the available number of characters
     # try:
     #     password_obj.randomize()
     # except passExcept.LengthError:
     #     showinfo(title="Notice", message="Since there will be no letter characters, the total password length cannot "
     #                                      "exceed the sum of the symbols and numbers")
-
-    # unlock the text field, clears the text field of previous input then inputs the randomly generated password
-    # afterward, the text field is made un-editable again
     pass_text["state"] = "normal"
     pass_text.delete("1.0", "end")
     pass_text.insert("1.0", password_obj.parse_password())
     pass_text["state"] = "disabled"
 
 
-# gathers the boolean data for the first four GUI window questions, the totals for the nums and symbols, and the desired
-# length of the password. It will handle the possible exceptions for each process
 def gather_gui_data():
+    '''
+    Gathers the boolean data for the first four GUI window prompts, 
+    the totals for the numbers and symbols, and the desired password length.
+
+    Args:
+        None
+
+    Returns:
+        None
+    '''
     try:
         get_booleans()
         get_minimums()
         set_password_length()
     except passExcept.UnsetButtonError:
-        showinfo(title="Notice", message="All True/False questions must be answered before proceeding")
+        showinfo(title="Notice",
+                 message="All True/False questions must be answered before proceeding")
 
 
-# changes the value of the spinboxes (totals for nums and symbols) to 0 if numbers/symbols are toggled off
 def set_password_length():
+    '''
+    Changes the value of the numbers/symbols spinboxes to 0 if the numbers/symbols are toggled off.
+
+    Args:
+        None
+
+    Return:
+        None
+    '''
     global PASSWORD_LENGTH
     PASSWORD_LENGTH = int(get_slider_value())
 
@@ -79,65 +105,100 @@ def set_password_length():
         length_val_label.configure(text="Current Value: " + str(PASSWORD_LENGTH))
 
 
-# converts the "True/False" string stored within the radio buttons' variable into a boolean. This is then stored in the
-# global variable for use in the password generator
 def get_booleans():
+    '''
+    Converts the "True/False" string stored within the radio buttons's variable into a boolean. 
+    Global boolean variables are updated accordingly.
+
+    Args:
+        None
+
+    Return:
+        None
+    '''
     try:
         global CAPITAL_BOOL, LOWERCASE_BOOL, NUMS_BOOL, SYMB_BOOL
 
-        CAPITAL_BOOL = eval(capital_radio_var.get())
-        LOWERCASE_BOOL = eval(lower_radio_var.get())
-        NUMS_BOOL = eval(number_radio_var.get())
-        SYMB_BOOL = eval(symbol_radio_var.get())
+        CAPITAL_BOOL = literal_eval(capital_radio_var.get())
+        LOWERCASE_BOOL = literal_eval(lower_radio_var.get())
+        NUMS_BOOL = literal_eval(number_radio_var.get())
+        SYMB_BOOL = literal_eval(symbol_radio_var.get())
     except SyntaxError:
         raise passExcept.UnsetButtonError
 
 
-# gathers the requested total nums/symbols and updates the corresponding global variable if the corresponding boolean
-# variable was True. If not, it sets the total to zero, sends a warning, and updates the global variable to zero.
 def get_minimums():
+    '''
+    Updates the totals for numbers/symbols if its corresponding boolean variable is True. 
+    If not, it sets the total to zero, sends a warning, and updates the global variable to zero.
+
+    Args:
+        None
+
+    Return:
+        None
+    '''
     global TOTAL_NUMS, TOTAL_SYMBS
 
     if not NUMS_BOOL:
-        showinfo(title="Notice", message="Due to 'Include Numbers?' being false, you will have no numeric characters")
+        showinfo(title="Notice",
+            message="Due to 'Include Numbers?' being false, you will have no numeric characters.")
         current_ttl_num.set(0)
         TOTAL_NUMS = int('{:.0f}'.format(current_ttl_num.get()))
     else:
         TOTAL_NUMS = int('{:.0f}'.format(current_ttl_num.get()))
 
     if not SYMB_BOOL:
-        showinfo(title="Notice", message="Due to 'Include Symbols?' being false, you will have no special symbols")
+        showinfo(title="Notice",
+            message="Due to 'Include Symbols?' being false, you will have no special symbols.")
         current_ttl_symbol.set(0)
         TOTAL_SYMBS = int('{:.0f}'.format(current_ttl_symbol.get()))
     else:
         TOTAL_SYMBS = int('{:.0f}'.format(current_ttl_symbol.get()))
 
 
-# returns the value of the length scale
 def get_slider_value():
+    '''
+    Gets the value of the length slider
+
+    Args:
+        None
+
+    Return:
+        float: value of the length slider
+    '''
     return '{: .0f}'.format(length_slider_var.get())
 
 
-# When the length scale is interacted with, its minimum value is set to be the sum of the total numbers and symbols.
-# Then, the length scale's label is updated to the value the scale is currently on
 def slider_changed(event):
+    '''
+    When the length scale is interacted with, its minimum value is set to be the 
+    sum of the total numbers and symbols. The length scale's label is then updated 
+    to the value of the scale.
+
+    Args:
+        None
+    
+    Return:
+        None
+    '''
     length_slider.configure(from_=current_ttl_num.get() + current_ttl_symbol.get())
     length_val_label.configure(text="Current Value: " + str(get_slider_value()))
 
 
 # WIDGETS
 SUBGRID_COLUMN = 0
-
 title_label = ttk.Label(root, text="Your Random Password is...",
                        font=("Times New Roman", 11, "bold"))
 title_label.grid(column=0, row=0, columnspan=2, padx=5, pady=5)
 
 # FIXME: insert however the password will be displayed here
-# Password's text widget
+# PASSWORD TEXT WIDGET
 pass_text = tk.Text(root, height=1)
 pass_text.grid(column=0, row=1, columnspan=2)
 
-# Capital label and radio button label frame
+
+# CAPITAL LABEL/RADIO BUTTON LABEL FRAME
 capital_label = ttk.Label(root, text="Include Capitals?", font=("Times New Roman", 13))
 capital_label.grid(column=0, row=2, sticky=tk.W, padx=100)
 
@@ -152,7 +213,7 @@ for choice in RADIO_CHOICE:
     SUBGRID_COLUMN += 1
 
 
-# Lowercase label and radio button label frame
+# LOWERCASE LABEL/RADIO BUTTON LABEL FRAME
 lowercase_label = ttk.Label(root, text="Include Lowercase?", font=("Times New Roman", 13))
 lowercase_label.grid(column=0, row=3, sticky=tk.W, padx=100)
 
@@ -167,7 +228,7 @@ for choice in RADIO_CHOICE:
     SUBGRID_COLUMN += 1
 
 
-# Numbers label and radio button label frame
+# NUMBERS LABEL/RADIO BUTTON LABEL FRAME
 number_label = ttk.Label(root, text="Include Numbers?", font=("Times New Roman", 13))
 number_label.grid(column=0, row=4, sticky=tk.W, padx=100)
 
@@ -181,9 +242,10 @@ for choice in RADIO_CHOICE:
     radio.grid(column=SUBGRID_COLUMN, row=0, ipadx=10, ipady=10)
     SUBGRID_COLUMN += 1
 
+
 # FIXME: make sure spinboxes trigger a notification window if the input value is above 12, then reset the input value
 # FIXME: to 12.
-# Symbols label and radio button label frame
+# SYMBOLS LABEL/RADIO BUTTON LABEL FRAME
 symbol_label = ttk.Label(root, text="Include Symbols?", font=("Times New Roman", 13))
 symbol_label.grid(column=0, row=5, sticky=tk.W, padx=100)
 
@@ -198,7 +260,7 @@ for choice in RADIO_CHOICE:
     SUBGRID_COLUMN += 1
 
 
-# TtlNum's label and spinbox
+# TTL_NUMS'S LABEL AND SPINBOX
 ttl_num_label = ttk.Label(root, text="Total Numbers?", font=("Times New Roman", 13))
 ttl_num_label.grid(column=0, row=6, sticky=tk.W, padx=100)
 
@@ -207,7 +269,7 @@ ttl_num_spinbox = ttk.Spinbox(root, from_=0, to=12, textvariable=current_ttl_num
 ttl_num_spinbox.grid(column=1, row=6, pady=10)
 
 
-# TtlSymbol's label and spinbox
+# TTL_SYMBOLS'S LABEL AND SPINBOX
 ttl_symbol_label = ttk.Label(root, text="Total Symbols?", font=("Times New Roman", 13))
 ttl_symbol_label.grid(column=0, row=7, sticky=tk.W, padx=100)
 
@@ -216,7 +278,7 @@ ttl_symbol_spinbox = ttk.Spinbox(root, from_=0, to=12, textvariable=current_ttl_
 ttl_symbol_spinbox.grid(column=1, row=7, pady=10)
 
 
-# Label and Slider for the length of the password
+# PASSWORD LENGTH LABEL AND SLIDER
 length_label = ttk.Label(text="Password Length", font=("Times New Roman", 13))
 length_label.grid(column=0, row=8, sticky=tk.W, padx=100)
 
@@ -233,6 +295,7 @@ length_val_label.grid(column=0, row=1, sticky=tk.N)
 
 
 # FIXME: finish the functionality of the generate password button
+# GENERATE PASSWORD BUTTON
 gen_pass_bttn = ttk.Button(root, text="Generate Password", command=generate_password)
 gen_pass_bttn.grid(column=0, row=9, sticky=tk.S, columnspan=2, ipadx=15, ipady=15)
 

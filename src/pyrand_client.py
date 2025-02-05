@@ -1,3 +1,5 @@
+'''Client code for generating the randomized password.'''
+
 import random
 
 class Password:
